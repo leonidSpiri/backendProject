@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:backendProject/auth.dart';
+
+import 'package:auth/auth.dart';
 import 'package:conduit/conduit.dart';
 
 void main() async {

@@ -1,10 +1,9 @@
-name: backendProject
-description: A sample backend project
+name: auth
+description: Auth Service
 version: 1.0.0
-# homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.18.3 <3.0.0'
+  sdk: '>=2.17.1 <3.0.0'
 
 dependencies:
   conduit: ^4.0.0

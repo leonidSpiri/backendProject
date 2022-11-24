@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:backendProject/controllers/app_auth_controller.dart';
+import 'package:auth/controllers/app_auth_controller.dart';
 import 'package:conduit/conduit.dart';
 
 class AppService extends ApplicationChannel {

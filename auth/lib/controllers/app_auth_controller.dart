@@ -1,5 +1,6 @@
-import 'package:backendProject/models/response_model.dart';
-import 'package:backendProject/models/user_data.dart';
+
+import 'package:auth/models/response_model.dart';
+import 'package:auth/models/user_data.dart';
 import 'package:conduit/conduit.dart';
 
 class AppAuthController extends ResourceController {
