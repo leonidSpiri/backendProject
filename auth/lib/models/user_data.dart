@@ -7,12 +7,18 @@ class _User {
   int? id;
   @Column(unique: true, indexed: true)
   String? username;
+  @Serialize(input: true, output: false)
   String? password;
   @Column(unique: true, indexed: true)
   String? email;
+  @Column(unique: true, nullable: true)
   String? phone;
   @Column(nullable: true)
   String? accessToken;
   @Column(nullable: true)
   String? refreshToken;
+  @Column(omitByDefault: true)
+  String? salt;
+  @Column(omitByDefault: true)
+  String? passwordHash;
 }
