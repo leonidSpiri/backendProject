@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user_data.dart';
+import 'package:auth/utils/app_const.dart';
 import 'package:auth/utils/app_response.dart';
 import 'package:conduit/conduit.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
@@ -54,7 +53,8 @@ class AppAuthController extends ResourceController {
   Future<Response> signUp(@Bind.body() User user) async {
     if (user.username == null || user.password == null || user.email == null)
       return AppResponse.badRequest(
-          error: "Register failed", message: "Username. password and Email are required");
+          error: "Register failed",
+          message: "Username. password and Email are required");
 
     final salt = generateRandomSalt();
     final hashPassword = generatePasswordHash(user.password ?? "", salt);
@@ -88,20 +88,20 @@ class AppAuthController extends ResourceController {
       @Bind.path("refresh") String refreshToken) async {
     try {
       final id = AppUtils.getIdFromToken(refreshToken);
-      final userData = await managedContext.fetchObjectWithID<User>(id);
-      if (userData?.refreshToken != refreshToken)
+      final user = await managedContext.fetchObjectWithID<User>(id);
+      if (user?.refreshToken != refreshToken)
         return AppResponse.unauthorized(
             error: "Unauthorized", message: "Invalid refresh token");
       await _updateTokens(id, managedContext);
-
+      final updatedUser = await managedContext.fetchObjectWithID<User>(id);
       return AppResponse.ok(
-          body: userData?.backing.contents, message: "Refresh success");
+          body: updatedUser?.backing.contents, message: "Refresh success");
     } catch (error) {
       return AppResponse.serverError(error, message: "Refresh failed");
     }
   }
 
-  _updateTokens(int id, ManagedContext transaction) async {
+  Future<void> _updateTokens(int id, ManagedContext transaction) async {
     final Map<String, dynamic> tokens = _getTokens(id);
     final qUpdateTokens = Query<User>(transaction)
       ..values.accessToken = tokens["access"]
@@ -111,9 +111,9 @@ class AppAuthController extends ResourceController {
   }
 
   Map<String, dynamic> _getTokens(int id) {
-    final key = Platform.environment["SECRET_KEY"] ?? "SECRET_KEY";
+    final key = AppConst.secretKey;
     final accessClaimSet = JwtClaim(
-      maxAge: Duration(hours: 1),
+      maxAge: Duration(minutes: 10),
       otherClaims: {"id": id},
     );
     final refreshClaimSet = JwtClaim(

@@ -25,6 +25,9 @@ class AppResponse extends Response {
     if (error is JwtException)
       return MyResponseModel(
           error: error.toString(), message: message ?? error.message);
+    if (error is AuthorizationParserException)
+      return MyResponseModel(
+          error: error.toString(), message: "Authorization header is invalid");
     return MyResponseModel(error: error.toString(), message: "Unknown error");
   }
 }
