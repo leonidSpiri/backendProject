@@ -1,6 +1,6 @@
 import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user_data.dart';
-import 'package:auth/utils/app_const.dart';
+import 'package:auth/utils/app_env.dart';
 import 'package:auth/utils/app_response.dart';
 import 'package:conduit/conduit.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
@@ -111,7 +111,7 @@ class AppAuthController extends ResourceController {
   }
 
   Map<String, dynamic> _getTokens(int id) {
-    final key = AppConst.secretKey;
+    final key = AppEnv.secretKey;
     final accessClaimSet = JwtClaim(
       maxAge: Duration(days: 10),
       otherClaims: {"id": id},
