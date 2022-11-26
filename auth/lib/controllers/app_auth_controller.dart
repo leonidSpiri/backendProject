@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:auth/models/response_model.dart';
 import 'package:auth/models/user_data.dart';
+import 'package:auth/utils/app_response.dart';
 import 'package:conduit/conduit.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
 
@@ -28,31 +29,32 @@ class AppAuthController extends ResourceController {
             ]);
 
       final findUser = await qFindUser.fetchOne();
-      if (findUser == null) throw QueryException.input("User not found", null);
+      if (findUser == null)
+        return AppResponse.badRequest(
+            error: "Bad Request", message: "User not found");
 
       final hashPassword =
           generatePasswordHash(user.password ?? "", findUser.salt ?? "");
 
       if (hashPassword != findUser.passwordHash)
-        throw QueryException.input("Password is incorrect", null);
+        return AppResponse.badRequest(
+            error: "Bad Request", message: "Wrong password");
 
       await _updateTokens(findUser.id ?? -1, managedContext);
       final updatedUser =
           await managedContext.fetchObjectWithID<User>(findUser.id);
-
-      return Response.ok(MyResponseModel(
-          data: updatedUser?.backing.contents, message: "Login success"));
-    } on QueryException catch (error) {
-      return Response.serverError(body: MyResponseModel(error: error.message));
+      return AppResponse.ok(
+          body: updatedUser?.backing.contents, message: "Login success");
+    } catch (error) {
+      return AppResponse.serverError(error, message: "Login failed");
     }
   }
 
   @Operation.put()
   Future<Response> signUp(@Bind.body() User user) async {
     if (user.username == null || user.password == null || user.email == null)
-      return Response.badRequest(
-          body: MyResponseModel(
-              error: "Username. password and Email are required"));
+      return AppResponse.badRequest(
+          error: "Register failed", message: "Username. password and Email are required");
 
     final salt = generateRandomSalt();
     final hashPassword = generatePasswordHash(user.password ?? "", salt);
@@ -74,12 +76,10 @@ class AppAuthController extends ResourceController {
         await _updateTokens(id, transaction);
       });
       final userData = await managedContext.fetchObjectWithID<User>(id);
-      return Response.ok(MyResponseModel(
-              data: userData?.backing.contents,
-              message: "Successfully register")
-          .toJson());
-    } on QueryException catch (error) {
-      return Response.serverError(body: MyResponseModel(error: error.message));
+      return AppResponse.ok(
+          body: userData?.backing.contents, message: "Register success");
+    } catch (error) {
+      return AppResponse.serverError(error, message: "Register failed");
     }
   }
 
@@ -88,15 +88,16 @@ class AppAuthController extends ResourceController {
       @Bind.path("refresh") String refreshToken) async {
     try {
       final id = AppUtils.getIdFromToken(refreshToken);
-      await _updateTokens(id, managedContext);
       final userData = await managedContext.fetchObjectWithID<User>(id);
-      return Response.ok(MyResponseModel(
-              data: userData?.backing.contents,
-              message: "Successfully refresh token")
-          .toJson());
+      if (userData?.refreshToken != refreshToken)
+        return AppResponse.unauthorized(
+            error: "Unauthorized", message: "Invalid refresh token");
+      await _updateTokens(id, managedContext);
+
+      return AppResponse.ok(
+          body: userData?.backing.contents, message: "Refresh success");
     } catch (error) {
-      return Response.serverError(
-          body: MyResponseModel(error: error.toString()));
+      return AppResponse.serverError(error, message: "Refresh failed");
     }
   }
 
