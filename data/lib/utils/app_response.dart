@@ -17,6 +17,10 @@ class AppResponse extends Response {
       : super.unauthorized(
             body: MyResponseModel(error: error.toString(), message: message));
 
+  AppResponse.notFound({dynamic error, String? message})
+      : super.notFound(
+            body: MyResponseModel(error: error.toString(), message: message));
+
   static MyResponseModel _getErrorResponseModel(error, String? message) {
     if (error is QueryException)
       return MyResponseModel(

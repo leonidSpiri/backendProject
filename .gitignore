@@ -1,3 +1,6 @@
 # Project exclude paths
 /auth/.dart_tool/
 /.idea
+/data/migrations/
+/auth/migrations/
+/data/.dart_tool/
