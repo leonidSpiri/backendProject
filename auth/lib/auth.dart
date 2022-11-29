@@ -22,7 +22,7 @@ class AppService extends ApplicationChannel {
   Controller get entryPoint => Router()
     ..route("token/[:refresh]").link(() => AppAuthController(managedContext))
     ..route("user")
-        .link(() => AppTokenController())!
+        .link(() => AppTokenController(managedContext))!
         .link(() => AppUserController(managedContext));
 
   PostgreSQLPersistentStore _initDatabase() {

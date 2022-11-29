@@ -18,10 +18,6 @@ class AppUserController extends ResourceController {
     try {
       final id = AppUtils.getIdFromHeader(header);
       final user = await managedContext.fetchObjectWithID<User>(id);
-      final token = AppUtils.getTokenFromHeader(header);
-      if (user?.accessToken != token)
-        return AppResponse.unauthorized(
-            error: "Unauthorized", message: "Token is invalid");
 
       user?.removePropertiesFromBackingMap(
           [AppConst.accessToken, AppConst.refreshToken]);
@@ -39,10 +35,6 @@ class AppUserController extends ResourceController {
     try {
       final id = AppUtils.getIdFromHeader(header);
       final oldUser = await managedContext.fetchObjectWithID<User>(id);
-      final token = AppUtils.getTokenFromHeader(header);
-      if (oldUser?.accessToken != token)
-        return AppResponse.unauthorized(
-            error: "Unauthorized", message: "Token is invalid");
 
       final queryUpdateUser = Query<User>(managedContext)
         ..where((user) => user.id).equalTo(id)
@@ -76,24 +68,25 @@ class AppUserController extends ResourceController {
               table.accessToken,
             ]);
       final findUser = await qFindUser.fetchOne();
-      final token = AppUtils.getTokenFromHeader(header);
-      if (findUser?.accessToken != token)
-        return AppResponse.unauthorized(
-            error: "Unauthorized", message: "Token is invalid");
 
-      final oldPasswordHash = generatePasswordHash(oldPassword, findUser?.salt ?? "");
+      final oldPasswordHash =
+          generatePasswordHash(oldPassword, findUser?.salt ?? "");
       if (oldPasswordHash != findUser?.passwordHash)
         return AppResponse.badRequest(
             error: "Bad request", message: "Old password is incorrect");
-      final newPasswordHash = generatePasswordHash(newPassword, findUser?.salt ?? "");
+      final newPasswordHash =
+          generatePasswordHash(newPassword, findUser?.salt ?? "");
       if (oldPasswordHash == newPasswordHash)
         return AppResponse.badRequest(
-            error: "Bad request", message: "New password is the same as old password");
+            error: "Bad request",
+            message: "New password is the same as old password");
       final queryUpdateUser = Query<User>(managedContext)
         ..where((user) => user.id).equalTo(id)
         ..values.passwordHash = newPasswordHash;
       final updatedUser = await queryUpdateUser.updateOne();
-      return AppResponse.ok(message: "update password success", body: updatedUser?.backing.contents);
+      return AppResponse.ok(
+          message: "update password success",
+          body: updatedUser?.backing.contents);
     } catch (error) {
       return AppResponse.serverError(error, message: "Update password failed");
     }

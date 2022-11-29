@@ -65,7 +65,6 @@ class AppPostController extends ResourceController {
     try {
       final id = AppUtils.getIdFromHeader(header);
       final author = await managedContext.fetchObjectWithID<Author>(id);
-
       if (author == null) {
         final qCreateAuthor = Query<Author>(managedContext)..values.id = id;
         await qCreateAuthor.insert();
